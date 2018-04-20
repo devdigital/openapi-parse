@@ -1,0 +1,31 @@
+{
+  "name": "openapi-parse",
+  "version": "0.1.0",
+  "description": "Basic parser for OpenAPI specs",
+  "main": "index.js",
+  "repository": "https://github.com/devdigital/openapi-parse.git",
+  "author": "devdigital <devdigital.cloud@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "babel ./src --out-dir . --ignore __tests__",
+    "watch": "babel ./src -w . --out-dir . --ignore __tests__",
+    "test": "jest",
+    "test:watch": "jest --verbose --watchAll ",
+    "release": "standard-version"
+  },
+  "jest": {
+    "testPathIgnorePatterns": ["/node_modules/", ".cache"],
+    "verbose": true
+  },
+  "dependencies": {
+    "swagger-parser": "^4.1.0"
+  },
+  "devDependencies": {
+    "babel-cli": "6.26.0",
+    "babel-preset-env": "1.6.1",
+    "babel-preset-stage-0": "6.24.1",
+    "cross-env": "5.1.4",
+    "jest": "21.2.1",
+    "standard-version": "4.2.0"
+  }
+}
