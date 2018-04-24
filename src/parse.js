@@ -21,26 +21,9 @@ const fromFile = filePath => {
 
 const dereference = async (content, basePath, parser, resolver) => {
   const options = {
-    // parse: { custom: parser },
+    parse: { custom: parser },
     resolve: { file: false, http: false, custom: resolver },
   }
-
-  console.log(resolver)
-
-  // {
-  //     resolve: {
-  //       file: false,
-  //       http: false,
-  //       custom: {
-  //         order: 1,
-  //         canRead: info => true,
-  //         read: async info => {
-  //           console.log(info)
-  //           return await fromFile(info.url)
-  //         },
-  //       },
-  //     },
-  //   }
 
   if (basePath) {
     return await $RefParser.dereference(basePath, content, options)
@@ -77,13 +60,24 @@ const parse = async (content, options) => {
 
     const compiledOptions = merge(defaultOptions, options)
 
+    const parser = {
+      order: 1,
+      canParse: info => {
+        return compiledOptions.parser.canParse(info)
+      },
+      parse: async info => {
+        return compiledOptions.parser.parse(info)
+      },
+    }
+
     const resolver = {
       order: 1,
-      canRead: info =>
-        compiledOptions.resolver.canResolve({
+      canRead: info => {
+        return compiledOptions.resolver.canResolve({
           path: info.url,
           extension: info.extension,
-        }),
+        })
+      },
       read: async info => {
         return await compiledOptions.resolver.resolve({
           path: info.url,
@@ -95,7 +89,7 @@ const parse = async (content, options) => {
     const spec = await dereference(
       content,
       compiledOptions.basePath,
-      compiledOptions.parser,
+      parser,
       resolver
     )
 

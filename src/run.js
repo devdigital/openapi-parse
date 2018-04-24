@@ -38,24 +38,17 @@ const toFile = (filePath, content) => {
       )
     )
 
-    // const foo = await $RefParser.dereference(
-    //   './src/__tests__/specs/v2.0/json/petstore-separate/spec/',
-    //   spec,
-    //   {}
-    // )
-    //console.log(foo)
-
     const output = path.resolve(__dirname, './output.json')
     const content = await parse(spec, {
       basePath: './src/__tests__/specs/v2.0/json/petstore-separate/spec/',
       resolver: {
         canResolve: info => true,
         resolve: async info => {
-          console.log(info)
           return await fromFile(info.path)
         },
       },
     })
+
     await toFile(output, JSON.stringify(content, null, 2))
     console.log('complete')
   } catch (error) {
