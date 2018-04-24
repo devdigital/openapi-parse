@@ -43,9 +43,7 @@ const toFile = (filePath, content) => {
       basePath: './src/__tests__/specs/v2.0/json/petstore-separate/spec/',
       resolver: {
         canResolve: info => true,
-        resolve: async info => {
-          return await fromFile(info.path)
-        },
+        resolve: async info => await fromFile(info.path),
       },
     })
 
