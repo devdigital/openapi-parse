@@ -14,17 +14,13 @@
     "release": "standard-version"
   },
   "jest": {
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      ".cache"
-    ],
+    "testPathIgnorePatterns": ["/node_modules/", ".cache"],
     "verbose": true
   },
   "dependencies": {
     "deepmerge": "^2.1.0",
     "inspected": "^0.3.0",
-    "json-schema-ref-parser": "^5.0.3",
-    "swagger-parser": "^4.1.0"
+    "json-schema-ref-parser": "^5.0.3"
   },
   "devDependencies": {
     "babel-cli": "6.26.0",
