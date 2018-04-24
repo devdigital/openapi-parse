@@ -1,6 +1,6 @@
 {
   "name": "openapi-parse",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Basic parser for OpenAPI specs",
   "main": "index.js",
   "repository": "https://github.com/devdigital/openapi-parse.git",
@@ -14,7 +14,10 @@
     "release": "standard-version"
   },
   "jest": {
-    "testPathIgnorePatterns": ["/node_modules/", ".cache"],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      ".cache"
+    ],
     "verbose": true
   },
   "dependencies": {
