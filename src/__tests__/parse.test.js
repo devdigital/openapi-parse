@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import parse from '../parse'
+import parse from '../index'
 
 const fromFile = filePath => {
   return new Promise((resolve, reject) => {
