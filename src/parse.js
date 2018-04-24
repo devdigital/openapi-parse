@@ -22,7 +22,7 @@ const fromFile = filePath => {
 const dereference = async (content, basePath, parser, resolver) => {
   const options = {
     parse: { custom: parser },
-    resolve: { file: false, http: false, custom: resolver },
+    resolve: { custom: resolver },
   }
 
   if (basePath) {
@@ -53,12 +53,14 @@ const parse = async (content, options) => {
         parse: async file => {},
       },
       resolver: {
-        canResolve: file => false,
-        resolve: async file => {},
+        canResolve: info => false,
+        resolve: async info => {},
       },
     }
 
-    const compiledOptions = merge(defaultOptions, options)
+    const compiledOptions = options
+      ? merge(defaultOptions, options)
+      : defaultOptions
 
     const parser = {
       order: 1,

@@ -16,19 +16,6 @@ const fromFile = filePath => {
   })
 }
 
-const toFile = (filePath, content) => {
-  return new Promise((resolve, reject) => {
-    fs.writeFile(filePath, content, 'utf8', err => {
-      if (err) {
-        reject(err)
-        return
-      }
-
-      resolve()
-    })
-  })
-}
-
 describe('parse', () => {
   it('throws exception when no content provided', async () => {
     await expect(parse()).rejects.toHaveProperty(
@@ -44,14 +31,20 @@ describe('parse', () => {
     )
   })
 
-  it('returns spec when content provided', async () => {
-    const spec = await fromFile(
-      path.resolve(
-        __dirname,
-        './specs/v2.0/json/petstore-with-external-docs.json'
-      )
+  it('returns spec when path provided', async () => {
+    const file = path.resolve(
+      __dirname,
+      './specs/v2.0/json/petstore-simple.json'
     )
 
-    await expect({}).resolves.toEqual({})
+    await expect(parse(file)).resolves.toBeTruthy()
+  })
+
+  it('returns spec when spec object provided', async () => {
+    const spec = await fromFile(
+      path.resolve(__dirname, './specs/v2.0/json/petstore-simple.json')
+    )
+
+    await expect(parse(spec)).resolves.toBeTruthy()
   })
 })
