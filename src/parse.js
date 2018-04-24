@@ -3,15 +3,46 @@ const isNil = require('inspected/schema/is-nil').default
 const isString = require('inspected/schema/is-string').default
 const isObject = require('inspected/schema/is-object').default
 const merge = require('deepmerge')
+const fs = require('fs')
+
+const fromFile = filePath => {
+  return new Promise((resolve, reject) => {
+    fs.readFile(filePath, 'utf8', (err, data) => {
+      if (err) {
+        reject(err)
+        return
+      }
+
+      const spec = JSON.parse(data)
+      resolve(spec)
+    })
+  })
+}
 
 const dereference = async (content, basePath, parser, resolver) => {
   const options = {
-    parse: { custom: parser },
+    // parse: { custom: parser },
     resolve: { file: false, http: false, custom: resolver },
   }
 
+  console.log(resolver)
+
+  // {
+  //     resolve: {
+  //       file: false,
+  //       http: false,
+  //       custom: {
+  //         order: 1,
+  //         canRead: info => true,
+  //         read: async info => {
+  //           console.log(info)
+  //           return await fromFile(info.url)
+  //         },
+  //       },
+  //     },
+  //   }
+
   if (basePath) {
-    console.log(content, basePath, parser, resolver)
     return await $RefParser.dereference(basePath, content, options)
   }
 
@@ -65,7 +96,7 @@ const parse = async (content, options) => {
       content,
       compiledOptions.basePath,
       compiledOptions.parser,
-      compiledOptions.resolver
+      resolver
     )
 
     return spec
