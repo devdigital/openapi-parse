@@ -1,8 +1,8 @@
-const $RefParser = require('json-schema-ref-parser')
-const isNil = require('inspected/schema/is-nil').default
-const isString = require('inspected/schema/is-string').default
-const isObject = require('inspected/schema/is-object').default
-const merge = require('deepmerge')
+import $RefParser from 'json-schema-ref-parser'
+import isNil from 'inspected/schema/is-nil'
+import isString from 'inspected/schema/is-string'
+import isObject from 'inspected/schema/is-object'
+import merge from 'deepmerge'
 
 const resolve = ({
   basePath,
@@ -95,4 +95,4 @@ const parse = options => async content => {
   }
 }
 
-module.exports = parse
+export default parse
