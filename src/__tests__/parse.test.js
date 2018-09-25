@@ -20,24 +20,24 @@ describe('parse', () => {
   it('throws exception when no content provided', async () => {
     await expect(parse()()).rejects.toHaveProperty(
       'message',
-      'No content specified.'
+      'No schema specified.'
     )
   })
 
-  it('throws exception when content is not a string or object', async () => {
+  it('throws exception when schema is not a string or object', async () => {
     await expect(parse()(false)).rejects.toHaveProperty(
       'message',
-      'Content must be a string or spec object.'
+      'Schema must be a string path or spec object.'
     )
   })
 
   it('returns spec when path provided', async () => {
-    const file = path.resolve(
+    const filePath = path.resolve(
       __dirname,
       './specs/v2.0/json/petstore-simple.json'
     )
 
-    await expect(parse()(file)).resolves.toBeTruthy()
+    await expect(parse()(filePath)).resolves.toBeTruthy()
   })
 
   it('returns spec when spec object provided', async () => {

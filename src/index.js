@@ -4,35 +4,24 @@ import isString from 'inspected/schema/is-string'
 import isObject from 'inspected/schema/is-object'
 import merge from 'deepmerge'
 
-const resolve = ({
-  basePath,
-  dereference,
-  parser,
-  resolver,
-}) => async content => {
+const resolve = ({ dereference, parser, resolver }) => async schema => {
   const refParserOptions = {
     parse: { parser },
     resolve: { custom: resolver },
   }
 
-  if (basePath) {
-    return dereference
-      ? await $RefParser.dereference(basePath, content, refParserOptions)
-      : await $RefParser.bundle(basePath, content, refParserOptions)
-  }
-
   return dereference
-    ? await $RefParser.dereference(content, refParserOptions)
-    : await $RefParser.bundle(content, refParserOptions)
+    ? await $RefParser.dereference(schema, refParserOptions)
+    : await $RefParser.bundle(schema, refParserOptions)
 }
 
-const parse = options => async content => {
-  if (isNil(content)) {
-    throw new Error('No content specified.')
+const parse = options => async schema => {
+  if (isNil(schema)) {
+    throw new Error('No schema specified.')
   }
 
-  if (!isString(content) && !isObject(content)) {
-    throw new Error('Content must be a string or spec object.')
+  if (!isString(schema) && !isObject(schema)) {
+    throw new Error('Schema must be a string path or spec object.')
   }
 
   // TODO: validate options against schema
@@ -42,7 +31,6 @@ const parse = options => async content => {
 
   try {
     const defaultOptions = {
-      basePath: null,
       dereference: false,
       parser: {
         canParse: file => false,
@@ -85,11 +73,10 @@ const parse = options => async content => {
     }
 
     return await resolve({
-      basePath: compiledOptions.basePath,
       dereference: compiledOptions.dereference,
       parser,
       resolver,
-    })(content)
+    })(schema)
   } catch (error) {
     throw new Error(`There was an error parsing the specified spec:\n${error}`)
   }
