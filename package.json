@@ -1,6 +1,6 @@
 {
   "name": "openapi-parse",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Basic parser for OpenAPI specs",
   "main": "index.js",
   "repository": "https://github.com/devdigital/openapi-parse.git",
