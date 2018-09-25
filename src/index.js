@@ -3,33 +3,28 @@ const isNil = require('inspected/schema/is-nil').default
 const isString = require('inspected/schema/is-string').default
 const isObject = require('inspected/schema/is-object').default
 const merge = require('deepmerge')
-const fs = require('fs')
 
-const fromFile = filePath => {
-  return new Promise((resolve, reject) => {
-    fs.readFile(filePath, 'utf8', (err, data) => {
-      if (err) {
-        reject(err)
-        return
-      }
-
-      const spec = JSON.parse(data)
-      resolve(spec)
-    })
-  })
-}
-
-const dereference = async (content, basePath, parser, resolver) => {
-  const options = {
-    parse: { custom: parser },
+const resolve = ({ basePath, dereference, parser, resolver }) => async content => {
+  const refParserOptions = {
+    parse: { parser },
     resolve: { custom: resolver },
   }
 
   if (basePath) {
-    return await $RefParser.dereference(basePath, content, options)
+    if (dereference) 
+    {
+      return await $RefParser.dereference(basePath, content, refParserOptions)
+    }
+
+    return await $RefParser.bundle(basePath, content, refParserOptions)
   }
 
-  return await $RefParser.dereference(content, options)
+  if (dereference)
+  {
+    return await $RefParser.dereference(content, refParserOptions)  
+  }
+
+  return await $RefParser.bundle(content, refParserOptions)
 }
 
 const parse = async (content, options) => {
@@ -48,6 +43,8 @@ const parse = async (content, options) => {
 
   try {
     const defaultOptions = {
+      basePath: null,
+      dereference: false,
       parser: {
         canParse: file => false,
         parse: async file => {},
@@ -88,14 +85,12 @@ const parse = async (content, options) => {
       },
     }
 
-    const spec = await dereference(
-      content,
-      compiledOptions.basePath,
+    return await resolve({
+      basePath: compiledOptions.basePath,
+      dereference: compiledOptions.dereference,
       parser,
       resolver
-    )
-
-    return spec
+    })(content)    
   } catch (error) {
     throw new Error(`There was an error parsing the specified spec:\n${error}`)
   }

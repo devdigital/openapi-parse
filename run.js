@@ -1,7 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const parse = require('./src/parse')
-const $RefParser = require('json-schema-ref-parser')
+const parse = require('./src')
 
 const fromFile = filePath => {
   return new Promise((resolve, reject) => {
@@ -40,8 +39,9 @@ const toFile = (filePath, content) => {
     const output = path.resolve(__dirname, './output.json')
     const content = await parse(spec, {
       basePath,
+      dereference: true,
       resolver: {
-        canResolve: info => true,
+        canResolve: () => true,
         resolve: async info => await fromFile(info.path),
       },
     })
