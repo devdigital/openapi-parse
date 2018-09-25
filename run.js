@@ -37,14 +37,14 @@ const toFile = (filePath, content) => {
     )
 
     const output = path.resolve(__dirname, './output.json')
-    const content = await parse(spec, {
+    const content = await parse({
       basePath,
       dereference: true,
       resolver: {
         canResolve: () => true,
         resolve: async info => await fromFile(info.path),
       },
-    })
+    })(spec)
 
     await toFile(output, JSON.stringify(content, null, 2))
     console.log('complete')
