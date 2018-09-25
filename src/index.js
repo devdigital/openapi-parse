@@ -4,30 +4,29 @@ const isString = require('inspected/schema/is-string').default
 const isObject = require('inspected/schema/is-object').default
 const merge = require('deepmerge')
 
-const resolve = ({ basePath, dereference, parser, resolver }) => async content => {
+const resolve = ({
+  basePath,
+  dereference,
+  parser,
+  resolver,
+}) => async content => {
   const refParserOptions = {
     parse: { parser },
     resolve: { custom: resolver },
   }
 
   if (basePath) {
-    if (dereference) 
-    {
-      return await $RefParser.dereference(basePath, content, refParserOptions)
-    }
-
-    return await $RefParser.bundle(basePath, content, refParserOptions)
+    return dereference
+      ? await $RefParser.dereference(basePath, content, refParserOptions)
+      : await $RefParser.bundle(basePath, content, refParserOptions)
   }
 
-  if (dereference)
-  {
-    return await $RefParser.dereference(content, refParserOptions)  
-  }
-
-  return await $RefParser.bundle(content, refParserOptions)
+  return dereference
+    ? await $RefParser.dereference(content, refParserOptions)
+    : await $RefParser.bundle(content, refParserOptions)
 }
 
-const parse = async (content, options) => {
+const parse = options => async content => {
   if (isNil(content)) {
     throw new Error('No content specified.')
   }
@@ -89,8 +88,8 @@ const parse = async (content, options) => {
       basePath: compiledOptions.basePath,
       dereference: compiledOptions.dereference,
       parser,
-      resolver
-    })(content)    
+      resolver,
+    })(content)
   } catch (error) {
     throw new Error(`There was an error parsing the specified spec:\n${error}`)
   }
