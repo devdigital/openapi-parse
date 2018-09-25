@@ -18,14 +18,14 @@ const fromFile = filePath => {
 
 describe('parse', () => {
   it('throws exception when no content provided', async () => {
-    await expect(parse()).rejects.toHaveProperty(
+    await expect(parse()()).rejects.toHaveProperty(
       'message',
       'No content specified.'
     )
   })
 
   it('throws exception when content is not a string or object', async () => {
-    await expect(parse(false)).rejects.toHaveProperty(
+    await expect(parse()(false)).rejects.toHaveProperty(
       'message',
       'Content must be a string or spec object.'
     )
@@ -37,7 +37,7 @@ describe('parse', () => {
       './specs/v2.0/json/petstore-simple.json'
     )
 
-    await expect(parse(file)).resolves.toBeTruthy()
+    await expect(parse()(file)).resolves.toBeTruthy()
   })
 
   it('returns spec when spec object provided', async () => {
@@ -45,6 +45,6 @@ describe('parse', () => {
       path.resolve(__dirname, './specs/v2.0/json/petstore-simple.json')
     )
 
-    await expect(parse(spec)).resolves.toBeTruthy()
+    await expect(parse()(spec)).resolves.toBeTruthy()
   })
 })
