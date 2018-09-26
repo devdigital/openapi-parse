@@ -40,67 +40,65 @@ const parse = options => async schema => {
     throw new Error('Options should be an object.')
   }
 
-  try {
-    const defaultOptions = {
-      basePath: null,
-      dereference: false,
-      parser: {
-        canParse: fileInfo => false,
-        parse: async fileInfo => {},
-      },
-      resolver: {
-        canResolve: fileInfo => false,
-        resolve: async fileInfo => {},
-      },
-    }
-
-    const compiledOptions = options
-      ? merge(defaultOptions, options)
-      : defaultOptions
-
-    const parser = {
-      order: 1,
-      canParse: fileInfo => {
-        return compiledOptions.parser.canParse({
-          path: fileInfo.url,
-          extension: fileInfo.extension,
-          data: fileInfo.data,
-        })
-      },
-      parse: async fileInfo => {
-        return compiledOptions.parser.parse({
-          path: fileInfo.url,
-          extension: fileInfo.extension,
-          data: fileInfo.data,
-        })
-      },
-    }
-
-    const resolver = {
-      order: 1,
-      canRead: fileInfo => {
-        return compiledOptions.resolver.canResolve({
-          path: fileInfo.url,
-          extension: fileInfo.extension,
-        })
-      },
-      read: async fileInfo => {
-        return await compiledOptions.resolver.resolve({
-          path: fileInfo.url,
-          extension: fileInfo.extension,
-        })
-      },
-    }
-
-    return await resolve({
-      basePath: compiledOptions.basePath,
-      dereference: compiledOptions.dereference,
-      parser,
-      resolver,
-    })(schema)
-  } catch (error) {
-    throw new Error(`There was an error parsing the specified spec:\n${error}`)
+  const defaultOptions = {
+    basePath: null,
+    dereference: false,
+    parser: {
+      canParse: fileInfo => false,
+      parse: async fileInfo => {},
+    },
+    resolver: {
+      canResolve: fileInfo => false,
+      resolve: async fileInfo => {},
+    },
   }
+
+  const compiledOptions = Object.assign({}, defaultOptions, options)
+
+  const parser = compiledOptions.parser
+    ? {
+        order: 1,
+        canParse: fileInfo => {
+          return compiledOptions.parser.canParse({
+            path: fileInfo.url,
+            extension: fileInfo.extension,
+            data: fileInfo.data,
+          })
+        },
+        parse: async fileInfo => {
+          return compiledOptions.parser.parse({
+            path: fileInfo.url,
+            extension: fileInfo.extension,
+            data: fileInfo.data,
+          })
+        },
+      }
+    : undefined
+
+  const resolver = compiledOptions.resolver
+    ? {
+        order: 1,
+        canRead: fileInfo => {
+          return compiledOptions.resolver.canResolve({
+            path: fileInfo.url,
+            extension: fileInfo.extension,
+          })
+        },
+        read: async fileInfo => {
+          return await compiledOptions.resolver.resolve({
+            path: fileInfo.url,
+            extension: fileInfo.extension,
+          })
+        },
+      }
+    : undefined
+
+  return await resolve({
+    basePath: compiledOptions.basePath,
+    dereference: compiledOptions.dereference,
+    parser,
+    resolver,
+  })(schema)
 }
 
 export default parse
