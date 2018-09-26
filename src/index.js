@@ -4,10 +4,21 @@ import isString from 'inspected/schema/is-string'
 import isObject from 'inspected/schema/is-object'
 import merge from 'deepmerge'
 
-const resolve = ({ dereference, parser, resolver }) => async schema => {
+const resolve = ({
+  basePath,
+  dereference,
+  parser,
+  resolver,
+}) => async schema => {
   const refParserOptions = {
     parse: { parser },
     resolve: { custom: resolver },
+  }
+
+  if (basePath) {
+    return dereference
+      ? await $RefParser.dereference(basePath, schema, refParserOptions)
+      : await $RefParser.bundle(basePath, schema, refParserOptions)
   }
 
   return dereference
@@ -31,14 +42,15 @@ const parse = options => async schema => {
 
   try {
     const defaultOptions = {
+      basePath: null,
       dereference: false,
       parser: {
-        canParse: file => false,
-        parse: async file => {},
+        canParse: fileInfo => false,
+        parse: async fileInfo => {},
       },
       resolver: {
-        canResolve: info => false,
-        resolve: async info => {},
+        canResolve: fileInfo => false,
+        resolve: async fileInfo => {},
       },
     }
 
@@ -48,31 +60,40 @@ const parse = options => async schema => {
 
     const parser = {
       order: 1,
-      canParse: info => {
-        return compiledOptions.parser.canParse(info)
+      canParse: fileInfo => {
+        return compiledOptions.parser.canParse({
+          path: fileInfo.url,
+          extension: fileInfo.extension,
+          data: fileInfo.data,
+        })
       },
-      parse: async info => {
-        return compiledOptions.parser.parse(info)
+      parse: async fileInfo => {
+        return compiledOptions.parser.parse({
+          path: fileInfo.url,
+          extension: fileInfo.extension,
+          data: fileInfo.data,
+        })
       },
     }
 
     const resolver = {
       order: 1,
-      canRead: info => {
+      canRead: fileInfo => {
         return compiledOptions.resolver.canResolve({
-          path: info.url,
-          extension: info.extension,
+          path: fileInfo.url,
+          extension: fileInfo.extension,
         })
       },
-      read: async info => {
+      read: async fileInfo => {
         return await compiledOptions.resolver.resolve({
-          path: info.url,
-          extension: info.extension,
+          path: fileInfo.url,
+          extension: fileInfo.extension,
         })
       },
     }
 
     return await resolve({
+      basePath: compiledOptions.basePath,
       dereference: compiledOptions.dereference,
       parser,
       resolver,
