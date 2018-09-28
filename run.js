@@ -1,8 +1,9 @@
 const fs = require('fs')
 const path = require('path')
 const parse = require('./src').default
+const yaml = require('js-yaml')
 
-const fromFile = filePath => {
+const fromFile = parser => filePath => {
   return new Promise((resolve, reject) => {
     fs.readFile(filePath, 'utf8', (err, data) => {
       if (err) {
@@ -10,11 +11,14 @@ const fromFile = filePath => {
         return
       }
 
-      const spec = JSON.parse(data)
+      const spec = parser(data)
       resolve(spec)
     })
   })
 }
+
+const fromJsonFile = fromFile(data => JSON.parse(data))
+const fromYamlFile = fromFile(data => yaml.safeLoad(data))
 
 const toFile = (filePath, content) => {
   return new Promise((resolve, reject) => {
@@ -29,41 +33,40 @@ const toFile = (filePath, content) => {
   })
 }
 ;(async () => {
-  try {
-    const basePath = './src/__tests__/specs/v2.0/json/petstore-separate/spec/'
+  const basePath = './src/__tests__/specs/v3.0'
+  const spec = await fromYamlFile(
+    path.resolve(__dirname, basePath, './petstore.yaml')
+  )
 
-    const spec = await fromFile(
-      path.resolve(__dirname, basePath, 'swagger.json')
-    )
-
-    const output = path.resolve(__dirname, './output.json')
-    const content = await parse({
-      basePath,
-      dereference: true,
-      parser: {
-        canParse: info => {
-          console.log('canParse info', info)
-          return false
-        },
-        parse: info => {
-          console.log('parse info', info)
-        },
+  const output = path.resolve(__dirname, './output.json')
+  const content = await parse({
+    basePath,
+    dereference: true,
+    upgrade: {
+      enabled: true,
+      options: { patch: true, warnOnly: true },
+    },
+    parser: {
+      canParse: info => {
+        console.log('canParse info', info)
+        return false
       },
-      resolver: {
-        canResolve: info => {
-          console.log('canResolve info', info)
-          return true
-        },
-        resolve: async info => {
-          console.log('resolve info', info)
-          return await fromFile(info.path)
-        },
+      parse: info => {
+        console.log('parse info', info)
       },
-    })(spec)
+    },
+    resolver: {
+      canResolve: info => {
+        console.log('canResolve info', info)
+        return true
+      },
+      resolve: async info => {
+        console.log('resolve info', info)
+        return await fromFile(info.path)
+      },
+    },
+  })(spec)
 
-    await toFile(output, JSON.stringify(content, null, 2))
-    console.log('complete')
-  } catch (error) {
-    console.log(error)
-  }
+  await toFile(output, JSON.stringify(content, null, 2))
+  console.log('complete')
 })()

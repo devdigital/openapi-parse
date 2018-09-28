@@ -2,14 +2,9 @@ import $RefParser from 'json-schema-ref-parser'
 import isNil from 'inspected/schema/is-nil'
 import isString from 'inspected/schema/is-string'
 import isObject from 'inspected/schema/is-object'
-import merge from 'deepmerge'
+import upgrader from 'swagger2openapi'
 
-const resolve = ({
-  basePath,
-  dereference,
-  parser,
-  resolver,
-}) => async schema => {
+const getParsed = async (basePath, dereference, parser, resolver, schema) => {
   const refParserOptions = {
     parse: { parser },
     resolve: { custom: resolver },
@@ -24,6 +19,23 @@ const resolve = ({
   return dereference
     ? await $RefParser.dereference(schema, refParserOptions)
     : await $RefParser.bundle(schema, refParserOptions)
+}
+
+const resolve = ({
+  basePath,
+  dereference,
+  upgrade,
+  parser,
+  resolver,
+}) => async schema => {
+  let parsed = await getParsed(basePath, dereference, parser, resolver, schema)
+
+  if (upgrade.enabled) {
+    const upgraded = await upgrader.convertObj(parsed, upgrade.options || {})
+    return upgraded.openapi
+  }
+
+  return parsed
 }
 
 const parse = options => async schema => {
@@ -43,6 +55,9 @@ const parse = options => async schema => {
   const defaultOptions = {
     basePath: null,
     dereference: false,
+    upgrade: {
+      enabled: false,
+    },
     parser: {
       canParse: fileInfo => false,
       parse: async fileInfo => {},
@@ -96,6 +111,7 @@ const parse = options => async schema => {
   return await resolve({
     basePath: compiledOptions.basePath,
     dereference: compiledOptions.dereference,
+    upgrade: compiledOptions.upgrade,
     parser,
     resolver,
   })(schema)
