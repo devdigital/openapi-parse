@@ -1,4 +1,5 @@
 const fs = require('fs')
+const fsExtra = require('fs-extra')
 const path = require('path')
 const parse = require('./src').default
 const yaml = require('js-yaml')
@@ -45,16 +46,9 @@ const outputSpec = async (basePath, filePath) => {
   const versionFolder = filePath.split(path.sep).find(p => p.startsWith('v'))
   const outputFolder = path.resolve(__dirname, './output', versionFolder)
 
-  if (!fs.existsSync(outputFolder)) {
-    fs.mkdirSync(outputFolder)
-  }
+  fsExtra.ensureDirSync(outputFolder)
 
-  const outputPath = path.join(
-    outputFolder,
-    `${parsedPath.name}${parsedPath.ext}`
-  )
-
-  console.log(outputPath)
+  const outputPath = path.join(outputFolder, `${parsedPath.name}.json`)
 
   const content = await parse({
     basePath,
@@ -101,7 +95,7 @@ const outputSpecs = async specsFolder => {
   })
 }
 ;(async () => {
-  await outputSpecs('./src/specs/v2.0/json')
+  // await outputSpecs('./src/specs/v2.0/json')
   await outputSpecs('./src/specs/v3.0')
 
   console.log('complete')
