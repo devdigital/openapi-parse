@@ -11,8 +11,7 @@ const fromFile = parser => filePath => {
         return
       }
 
-      const spec = parser(data)
-      resolve(spec)
+      resolve(parser(data))
     })
   })
 }
@@ -22,7 +21,7 @@ const fromYamlFile = fromFile(data => yaml.safeLoad(data))
 
 const toFile = (filePath, content) => {
   return new Promise((resolve, reject) => {
-    fs.writeFile(filePath, content, 'utf8', err => {
+    fs.writeFile(filePath, content, { encoding: 'utf8', flag: 'w' }, err => {
       if (err) {
         reject(err)
         return
@@ -32,13 +31,31 @@ const toFile = (filePath, content) => {
     })
   })
 }
-;(async () => {
-  const basePath = './src/__tests__/specs/v3.0'
-  const spec = await fromYamlFile(
-    path.resolve(__dirname, basePath, './petstore.yaml')
+
+const outputSpec = async (basePath, filePath) => {
+  const parsedPath = path.parse(filePath)
+
+  let spec = null
+  if (parsedPath.ext === '.json') {
+    spec = await fromJsonFile(filePath)
+  } else {
+    spec = await fromYamlFile(filePath)
+  }
+
+  const versionFolder = filePath.split(path.sep).find(p => p.startsWith('v'))
+  const outputFolder = path.resolve(__dirname, './output', versionFolder)
+
+  if (!fs.existsSync(outputFolder)) {
+    fs.mkdirSync(outputFolder)
+  }
+
+  const outputPath = path.join(
+    outputFolder,
+    `${parsedPath.name}${parsedPath.ext}`
   )
 
-  const output = path.resolve(__dirname, './output.json')
+  console.log(outputPath)
+
   const content = await parse({
     basePath,
     dereference: true,
@@ -62,11 +79,30 @@ const toFile = (filePath, content) => {
       },
       resolve: async info => {
         console.log('resolve info', info)
-        return await fromFile(info.path)
+        return await fromJsonFile(info.path)
       },
     },
   })(spec)
 
-  await toFile(output, JSON.stringify(content, null, 2))
+  await toFile(outputPath, JSON.stringify(content, null, 2))
+}
+
+const outputSpecs = async specsFolder => {
+  fs.readdir(specsFolder, (err, files) => {
+    if (err) {
+      throw new Error('Error reading specs folder.')
+    }
+
+    files.forEach(async file => {
+      console.log(`outputting spec '${file}'...`)
+      await outputSpec(specsFolder, path.resolve(__dirname, specsFolder, file))
+      console.log(`spec file '${file}' successfully outputted.`)
+    })
+  })
+}
+;(async () => {
+  await outputSpecs('./src/specs/v2.0/json')
+  await outputSpecs('./src/specs/v3.0')
+
   console.log('complete')
 })()

@@ -1,0 +1,487 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Link Example",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/2.0/users/{username}": {
+      "get": {
+        "operationId": "getUserByName",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The User",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "username": {
+                      "type": "string"
+                    },
+                    "uuid": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "links": {
+              "userRepositories": {
+                "operationId": "getRepositoriesByOwner",
+                "parameters": {
+                  "username": "$response.body#/username"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/2.0/repositories/{username}": {
+      "get": {
+        "operationId": "getRepositoriesByOwner",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "repositories owned by the supplied user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "slug": {
+                        "type": "string"
+                      },
+                      "owner": {
+                        "type": "object",
+                        "properties": {
+                          "username": {
+                            "type": "string"
+                          },
+                          "uuid": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "links": {
+              "userRepository": {
+                "operationId": "getRepository",
+                "parameters": {
+                  "username": "$response.body#/owner/username",
+                  "slug": "$response.body#/slug"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/2.0/repositories/{username}/{slug}": {
+      "get": {
+        "operationId": "getRepository",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The repository",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "slug": {
+                      "type": "string"
+                    },
+                    "owner": {
+                      "type": "object",
+                      "properties": {
+                        "username": {
+                          "type": "string"
+                        },
+                        "uuid": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "links": {
+              "repositoryPullRequests": {
+                "operationId": "getPullRequestsByRepository",
+                "parameters": {
+                  "username": "$response.body#/owner/username",
+                  "slug": "$response.body#/slug"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/2.0/repositories/{username}/{slug}/pullrequests": {
+      "get": {
+        "operationId": "getPullRequestsByRepository",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "open",
+                "merged",
+                "declined"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "an array of pull request objects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "repository": {
+                        "type": "object",
+                        "properties": {
+                          "slug": {
+                            "type": "string"
+                          },
+                          "owner": {
+                            "type": "object",
+                            "properties": {
+                              "username": {
+                                "type": "string"
+                              },
+                              "uuid": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "author": {
+                        "type": "object",
+                        "properties": {
+                          "username": {
+                            "type": "string"
+                          },
+                          "uuid": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/2.0/repositories/{username}/{slug}/pullrequests/{pid}": {
+      "get": {
+        "operationId": "getPullRequestsById",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "a pull request object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "repository": {
+                      "type": "object",
+                      "properties": {
+                        "slug": {
+                          "type": "string"
+                        },
+                        "owner": {
+                          "type": "object",
+                          "properties": {
+                            "username": {
+                              "type": "string"
+                            },
+                            "uuid": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "author": {
+                      "type": "object",
+                      "properties": {
+                        "username": {
+                          "type": "string"
+                        },
+                        "uuid": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "links": {
+              "pullRequestMerge": {
+                "operationId": "mergePullRequest",
+                "parameters": {
+                  "username": "$response.body#/author/username",
+                  "slug": "$response.body#/repository/slug",
+                  "pid": "$response.body#/id"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/2.0/repositories/{username}/{slug}/pullrequests/{pid}/merge": {
+      "post": {
+        "operationId": "mergePullRequest",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "the PR was successfully merged"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "links": {
+      "UserRepositories": {
+        "operationId": "getRepositoriesByOwner",
+        "parameters": {
+          "username": "$response.body#/username"
+        }
+      },
+      "UserRepository": {
+        "operationId": "getRepository",
+        "parameters": {
+          "username": "$response.body#/owner/username",
+          "slug": "$response.body#/slug"
+        }
+      },
+      "RepositoryPullRequests": {
+        "operationId": "getPullRequestsByRepository",
+        "parameters": {
+          "username": "$response.body#/owner/username",
+          "slug": "$response.body#/slug"
+        }
+      },
+      "PullRequestMerge": {
+        "operationId": "mergePullRequest",
+        "parameters": {
+          "username": "$response.body#/author/username",
+          "slug": "$response.body#/repository/slug",
+          "pid": "$response.body#/id"
+        }
+      }
+    },
+    "schemas": {
+      "user": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "uuid": {
+            "type": "string"
+          }
+        }
+      },
+      "repository": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "object",
+            "properties": {
+              "username": {
+                "type": "string"
+              },
+              "uuid": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "pullrequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "repository": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string"
+              },
+              "owner": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "uuid": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "author": {
+            "type": "object",
+            "properties": {
+              "username": {
+                "type": "string"
+              },
+              "uuid": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
