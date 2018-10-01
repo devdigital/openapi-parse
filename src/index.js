@@ -1,8 +1,11 @@
 import $RefParser from 'json-schema-ref-parser'
+import isArray from 'inspected/schema/is-array'
 import isNil from 'inspected/schema/is-nil'
+import isFunction from 'inspected/schema/is-function'
 import isString from 'inspected/schema/is-string'
 import isObject from 'inspected/schema/is-object'
 import upgrader from 'swagger2openapi'
+import deepmerge from 'deepmerge'
 
 const getParsed = async (basePath, dereference, parser, resolver, schema) => {
   const refParserOptions = {
@@ -10,15 +13,31 @@ const getParsed = async (basePath, dereference, parser, resolver, schema) => {
     resolve: { custom: resolver },
   }
 
-  if (basePath) {
-    return dereference
-      ? await $RefParser.dereference(basePath, schema, refParserOptions)
-      : await $RefParser.bundle(basePath, schema, refParserOptions)
+  if (!isArray(dereference.mode)) {
+    throw new Error('Dereference mode should be an array.')
   }
 
-  return dereference
-    ? await $RefParser.dereference(schema, refParserOptions)
-    : await $RefParser.bundle(schema, refParserOptions)
+  if (!isFunction(dereference.resolve)) {
+    throw new Error('Dereference resolve should be a function.')
+  }
+
+  const params = (basePath ? [basePath] : []).concat([schema, refParserOptions])
+  const result = await Promise.all(
+    dereference.mode.map(async mode => {
+      switch (mode) {
+        case 'none':
+          return await $RefParser.parse(...params)
+        case 'external':
+          return await $RefParser.bundle(...params)
+        case 'all':
+          return await $RefParser.dereference(...params)
+        default:
+          throw new Error(`Unknown dereference mode ${mode}.`)
+      }
+    })
+  )
+
+  return dereference.resolve(schema, result)
 }
 
 const resolve = ({
@@ -28,7 +47,13 @@ const resolve = ({
   parser,
   resolver,
 }) => async schema => {
-  let parsed = await getParsed(basePath, dereference, parser, resolver, schema)
+  const parsed = await getParsed(
+    basePath,
+    dereference,
+    parser,
+    resolver,
+    schema
+  )
 
   if (upgrade.enabled) {
     const upgraded = await upgrader.convertObj(parsed, upgrade.options || {})
@@ -54,7 +79,10 @@ const parse = options => async schema => {
 
   const defaultOptions = {
     basePath: null,
-    dereference: false,
+    dereference: {
+      mode: ['none'],
+      resolve: (_, result) => result[0],
+    },
     upgrade: {
       enabled: false,
     },
@@ -68,7 +96,7 @@ const parse = options => async schema => {
     },
   }
 
-  const compiledOptions = Object.assign({}, defaultOptions, options)
+  const compiledOptions = deepmerge(defaultOptions, options)
 
   const parser = compiledOptions.parser
     ? {

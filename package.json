@@ -15,22 +15,24 @@
     "release": "standard-version"
   },
   "dependencies": {
+    "deepmerge": "2.1.1",
     "inspected": "0.4.0",
     "json-schema-ref-parser": "5.1.3",
     "swagger2openapi": "3.2.10"
   },
   "devDependencies": {
-    "@babel/cli": "^7.1.2",
-    "@babel/core": "^7.1.2",
-    "@babel/node": "^7.0.0",
-    "@babel/preset-env": "^7.1.0",
-    "babel-core": "^7.0.0-bridge.0",
-    "babel-jest": "^23.6.0",
+    "@babel/cli": "7.1.2",
+    "@babel/core": "7.1.2",
+    "@babel/node": "7.0.0",
+    "@babel/preset-env": "7.1.0",
+    "@babel/register": "7.0.0",
+    "babel-core": "7.0.0-bridge.0",
+    "babel-jest": "23.6.0",
     "cross-env": "5.2.0",
-    "fs-extra": "^7.0.0",
+    "fs-extra": "7.0.0",
     "jest": "23.6.0",
     "js-yaml": "3.12.0",
-    "regenerator-runtime": "^0.12.1",
+    "regenerator-runtime": "0.12.1",
     "standard-version": "4.2.0"
   }
 }

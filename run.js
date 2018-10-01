@@ -35,11 +35,13 @@ const outputSpec = async (basePath, filePath) => {
 
   const content = await parse({
     basePath,
-    dereference: true,
     // upgrade: {
     //   enabled: true,
     //   options: { patch: true, warnOnly: true },
     // },
+    dereference: {
+      mode: ['all'],
+    },
     resolver: {
       canResolve: () => true,
       resolve: info => Promise.resolve(fromJsonFile(info.path)),
