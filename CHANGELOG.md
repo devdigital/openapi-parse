@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.4.0"></a>
+# [0.4.0](https://github.com/devdigital/openapi-parse/compare/v0.3.0...v0.4.0) (2018-10-01)
+
+
+### Features
+
+* add dereference mode ([c036736](https://github.com/devdigital/openapi-parse/commit/c036736))
+
+
+
 <a name="0.3.0"></a>
 # [0.3.0](https://github.com/devdigital/openapi-parse/compare/v0.2.4...v0.3.0) (2018-09-28)
 
