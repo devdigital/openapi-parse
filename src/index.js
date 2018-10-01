@@ -96,7 +96,9 @@ const parse = options => async schema => {
     },
   }
 
-  const compiledOptions = deepmerge(defaultOptions, options)
+  const compiledOptions = options
+    ? deepmerge(defaultOptions, options)
+    : defaultOptions
 
   const parser = compiledOptions.parser
     ? {
