@@ -16,23 +16,23 @@
   },
   "dependencies": {
     "deepmerge": "3.2.0",
-    "inspected": "0.4.0",
+    "inspected": "0.5.1",
     "json-schema-ref-parser": "6.1.0",
     "swagger2openapi": "5.2.5"
   },
   "devDependencies": {
-    "@babel/cli": "7.2.3",
-    "@babel/core": "7.4.0",
+    "@babel/cli": "7.4.3",
+    "@babel/core": "7.4.3",
     "@babel/node": "7.2.2",
-    "@babel/preset-env": "7.4.2",
+    "@babel/preset-env": "7.4.3",
     "@babel/register": "7.4.0",
     "babel-core": "7.0.0-bridge.0",
-    "babel-jest": "24.5.0",
+    "babel-jest": "24.7.1",
     "cross-env": "5.2.0",
     "fs-extra": "7.0.1",
-    "jest": "24.5.0",
-    "js-yaml": "3.13.0",
+    "jest": "24.7.1",
+    "js-yaml": "3.13.1",
     "regenerator-runtime": "0.13.2",
-    "standard-version": "4.2.0"
+    "standard-version": "5.0.2"
   }
 }
