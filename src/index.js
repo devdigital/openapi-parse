@@ -9,7 +9,7 @@ import deepmerge from 'deepmerge'
 
 const getParsed = async (basePath, dereference, parser, resolver, schema) => {
   const refParserOptions = {
-    parse: { parser },
+    parse: parser,
     resolve: { custom: resolver },
   }
 
@@ -72,7 +72,6 @@ const parse = options => async schema => {
     throw new Error('Schema must be a string path or spec object.')
   }
 
-  // TODO: validate options against schema
   if (!isNil(options) && !isObject(options)) {
     throw new Error('Options should be an object.')
   }
@@ -99,6 +98,8 @@ const parse = options => async schema => {
   const compiledOptions = options
     ? deepmerge(defaultOptions, options)
     : defaultOptions
+
+  // TODO: validate compiled options against schema with inspected
 
   const parser = compiledOptions.parser
     ? {
