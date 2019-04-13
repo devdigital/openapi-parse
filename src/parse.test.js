@@ -2,6 +2,30 @@ import fs from 'fs'
 import path from 'path'
 import parse from './index'
 
+const capturingResolver = () => {
+  const fileInfos = []
+  return {
+    canResolve: () => true,
+    resolve: fileInfo => {
+      fileInfos.push(fileInfo)
+      return fromFile(fileInfo.path)
+    },
+    getFileInfos: () => fileInfos,
+  }
+}
+
+const capturingParser = () => {
+  const fileInfos = []
+  return {
+    canParse: () => true,
+    parse: fileInfo => {
+      fileInfos.push(fileInfo)
+      return fromFile(fileInfo.path)
+    },
+    getFileInfos: () => fileInfos,
+  }
+}
+
 const fromFile = filePath => {
   return new Promise((resolve, reject) => {
     fs.readFile(filePath, 'utf8', (err, data) => {
@@ -48,16 +72,7 @@ describe('parse', () => {
     await expect(parse()(spec)).resolves.toBeTruthy()
   })
 
-  it('invokes resolver for separated schema', async () => {
-    const fileInfos = []
-    const capturingResolver = {
-      canResolve: () => true,
-      resolve: fileInfo => {
-        fileInfos.push(fileInfo)
-        return fromFile(fileInfo.path)
-      },
-    }
-
+  it('invokes parser for separated schema', async () => {
     const spec = await fromFile(
       path.resolve(
         __dirname,
@@ -70,16 +85,50 @@ describe('parse', () => {
       './specs/v2.0/json/petstore-separate/spec'
     )}/`
 
+    const parser = capturingParser()
+
     await parse({
       basePath,
       dereference: { mode: ['all'] },
-      resolver: capturingResolver,
+      parser,
     })(spec)
 
     const toFileCompare = filePath =>
       path.resolve(basePath.toLowerCase(), filePath).replace(/\\/g, '/')
 
-    expect(fileInfos.map(f => f.path)).toEqual([
+    expect(parser.getFileInfos().map(f => f.path)).toIncludeSameMembers([
+      toFileCompare('parameters.json'),
+      toFileCompare('Pet.json'),
+      toFileCompare('../common/Error.json'),
+      toFileCompare('NewPet.json'),
+    ])
+  })
+
+  it('invokes resolver for separated schema', async () => {
+    const spec = await fromFile(
+      path.resolve(
+        __dirname,
+        './specs/v2.0/json/petstore-separate/spec/swagger.json'
+      )
+    )
+
+    const basePath = `${path.resolve(
+      __dirname,
+      './specs/v2.0/json/petstore-separate/spec'
+    )}/`
+
+    const resolver = capturingResolver()
+
+    await parse({
+      basePath,
+      dereference: { mode: ['all'] },
+      resolver,
+    })(spec)
+
+    const toFileCompare = filePath =>
+      path.resolve(basePath.toLowerCase(), filePath).replace(/\\/g, '/')
+
+    expect(resolver.getFileInfos().map(f => f.path)).toIncludeSameMembers([
       toFileCompare('parameters.json'),
       toFileCompare('Pet.json'),
       toFileCompare('../common/Error.json'),

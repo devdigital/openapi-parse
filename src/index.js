@@ -9,7 +9,7 @@ import deepmerge from 'deepmerge'
 
 const getParsed = async (basePath, dereference, parser, resolver, schema) => {
   const refParserOptions = {
-    parse: parser,
+    parse: { parser },
     resolve: { custom: resolver },
   }
 
