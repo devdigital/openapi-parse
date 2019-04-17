@@ -2,6 +2,24 @@ import fs from 'fs'
 import path from 'path'
 import parse from './index'
 
+const fileResolver = {
+  canResolve: () => true,
+  resolve: fileInfo => fromFile(fileInfo.path),
+}
+
+const separatedSpecOptions = options =>
+  Object.assign(
+    {},
+    {
+      basePath: `${path.resolve(
+        __dirname,
+        './specs/v2.0/json/petstore-separate/spec'
+      )}/`,
+      resolver: fileResolver,
+    },
+    options
+  )
+
 const capturingResolver = () => {
   const fileInfos = []
   return {
@@ -40,6 +58,15 @@ const fromFile = filePath => {
   })
 }
 
+const fromJsonSpecPath = specPath =>
+  path.resolve(__dirname, './specs/v2.0/json', specPath)
+
+const fromJsonSpecFile = async specPath =>
+  await fromFile(fromJsonSpecPath(specPath))
+
+const toPath = basePath => filePath =>
+  path.resolve(basePath.toLowerCase(), filePath).replace(/\\/g, '/')
+
 describe('parse', () => {
   it('throws exception when no content provided', async () => {
     await expect(parse()()).rejects.toHaveProperty(
@@ -56,83 +83,66 @@ describe('parse', () => {
   })
 
   it('returns simple spec when path provided', async () => {
-    const filePath = path.resolve(
-      __dirname,
-      './specs/v2.0/json/petstore-simple.json'
-    )
-
+    const filePath = fromJsonSpecPath('petstore-simple.json')
     await expect(parse()(filePath)).resolves.toBeTruthy()
   })
 
   it('returns simple spec when spec object provided', async () => {
-    const spec = await fromFile(
-      path.resolve(__dirname, './specs/v2.0/json/petstore-simple.json')
-    )
-
+    const spec = await fromJsonSpecFile('petstore-simple.json')
     await expect(parse()(spec)).resolves.toBeTruthy()
   })
 
   it('invokes parser for separated schema', async () => {
-    const spec = await fromFile(
-      path.resolve(
-        __dirname,
-        './specs/v2.0/json/petstore-separate/spec/swagger.json'
-      )
-    )
-
-    const basePath = `${path.resolve(
-      __dirname,
-      './specs/v2.0/json/petstore-separate/spec'
-    )}/`
+    const spec = await fromJsonSpecFile('./petstore-separate/spec/swagger.json')
 
     const parser = capturingParser()
-
-    await parse({
-      basePath,
-      dereference: { mode: ['all'] },
+    const options = separatedSpecOptions({
       parser,
-    })(spec)
+      dereference: { mode: ['all'] },
+    })
 
-    const toFileCompare = filePath =>
-      path.resolve(basePath.toLowerCase(), filePath).replace(/\\/g, '/')
+    await parse(options)(spec)
+    const cleanPath = toPath(options.basePath)
 
     expect(parser.getFileInfos().map(f => f.path)).toIncludeSameMembers([
-      toFileCompare('parameters.json'),
-      toFileCompare('Pet.json'),
-      toFileCompare('../common/Error.json'),
-      toFileCompare('NewPet.json'),
+      cleanPath('parameters.json'),
+      cleanPath('Pet.json'),
+      cleanPath('../common/Error.json'),
+      cleanPath('NewPet.json'),
     ])
   })
 
   it('invokes resolver for separated schema', async () => {
-    const spec = await fromFile(
-      path.resolve(
-        __dirname,
-        './specs/v2.0/json/petstore-separate/spec/swagger.json'
-      )
-    )
-
-    const basePath = `${path.resolve(
-      __dirname,
-      './specs/v2.0/json/petstore-separate/spec'
-    )}/`
+    const spec = await fromJsonSpecFile('./petstore-separate/spec/swagger.json')
 
     const resolver = capturingResolver()
-
-    await parse({
-      basePath,
-      dereference: { mode: ['all'] },
+    const options = separatedSpecOptions({
       resolver,
-    })(spec)
+      dereference: { mode: ['all'] },
+    })
 
-    const toFileCompare = filePath =>
-      path.resolve(basePath.toLowerCase(), filePath).replace(/\\/g, '/')
+    await parse(options)(spec)
+    const cleanPath = toPath(options.basePath)
 
     expect(resolver.getFileInfos().map(f => f.path)).toIncludeSameMembers([
-      toFileCompare('parameters.json'),
-      toFileCompare('Pet.json'),
-      toFileCompare('../common/Error.json'),
-      toFileCompare('NewPet.json'),
+      cleanPath('parameters.json'),
+      cleanPath('Pet.json'),
+      cleanPath('../common/Error.json'),
+      cleanPath('NewPet.json'),
     ])
+  })
+
+  it('dereference none does not alter references', async () => {
+    const spec = await fromJsonSpecFile('./petstore-separate/spec/swagger.json')
+    const options = separatedSpecOptions({ dereference: { mode: ['none'] } })
+    const result = await parse(options)(spec)
+    expect(result).toEqual(spec)
+  })
+
+  it('dereference external does not alter references', async () => {
+    const spec = await fromJsonSpecFile('./petstore-separate/spec/swagger.json')
+    const options = separatedSpecOptions({ dereference: { mode: ['all'] } })
+    const result = await parse(options)(spec)
+    expect(result).toEqual(spec)
   })
 })
